@@ -149,6 +149,15 @@ button,
 button:hover {
   background: #f0f3f6;
 }
+/* ボタンの見た目をした、リンク(例: 対局カードの「編集」) */
+a.btn {
+  display: inline-block;
+  text-decoration: none;
+  color: var(--text);
+}
+a.btn:hover {
+  background: #f0f3f6;
+}
 button.primary {
   background: var(--primary);
   border-color: var(--primary);
