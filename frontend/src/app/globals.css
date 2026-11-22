@@ -1,0 +1,393 @@
+/* 画面全体のスタイル。docs/mock/index.html の見た目を土台にしている */
+
+:root {
+  --bg: #f5f6f8;
+  --card: #fff;
+  --text: #1f2933;
+  --muted: #6b7785;
+  --line: #e2e6eb;
+  --line-soft: #edf0f3;
+  --head-bg: #eef1f4;
+  --primary: #1f6f5c;
+  --primary-dark: #17564a;
+  --cta: #e8590c;
+  --cta-dark: #cf4f0a;
+  --danger: #c0392b;
+  --ok: #1e8449;
+  --plus: #1e6fb8;
+  --minus: #c0392b;
+  --warn-bg: #fff6df;
+  --warn-line: #f0d98a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  line-height: 1.6;
+}
+
+/* ===== 上部メニュー ===== */
+.nav {
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 52px;
+  flex-wrap: wrap;
+}
+.nav .brand {
+  font-weight: 700;
+  margin-right: 16px;
+}
+.nav a {
+  color: #d8efe8;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 15px;
+}
+.nav a.active {
+  background: #fff;
+  color: var(--primary);
+  font-weight: 700;
+}
+.nav a:not(.active):hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+main {
+  max-width: 980px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+h1 {
+  font-size: 22px;
+  margin: 0 0 16px;
+}
+h2 {
+  font-size: 17px;
+  margin: 24px 0 8px;
+}
+
+/* ===== 部品 ===== */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+.toolbar h1 {
+  margin: 0;
+}
+.muted {
+  color: var(--muted);
+}
+.plus {
+  color: var(--plus);
+}
+.minus {
+  color: var(--minus);
+}
+.note {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.empty {
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+a.link {
+  color: var(--primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+a.link:hover {
+  text-decoration: underline;
+}
+
+/* ===== ボタン・入力 ===== */
+button,
+.btn {
+  font: inherit;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+button:hover {
+  background: #f0f3f6;
+}
+button.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+button.primary:hover {
+  background: var(--primary-dark);
+}
+button.danger {
+  color: var(--danger);
+  border-color: #e6b8b2;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+/* 一番よく使う「対局を登録する」ボタン */
+.btn-cta {
+  display: inline-block;
+  background: var(--cta);
+  border: 1px solid var(--cta);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 10px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(232, 89, 12, 0.35);
+  white-space: nowrap;
+}
+.btn-cta:hover {
+  background: var(--cta-dark);
+}
+
+input,
+select {
+  font: inherit;
+  padding: 6px 10px;
+  border: 1px solid #c8d0d8;
+  border-radius: 6px;
+  background: #fff;
+}
+input[type="number"] {
+  width: 130px;
+  text-align: right;
+}
+
+/* ===== 表 ===== */
+.tablewrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  background: var(--card);
+}
+th,
+td {
+  padding: 9px 12px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+th:first-child,
+td:first-child {
+  text-align: left;
+}
+th {
+  background: var(--head-bg);
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+tr:last-child td {
+  border-bottom: none;
+}
+/* 縦線は薄く入れる */
+th + th,
+td + td {
+  border-left: 1px solid var(--line-soft);
+}
+thead tr:first-child th {
+  border-bottom: 1px solid var(--line);
+}
+th.center {
+  text-align: center;
+}
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+th.sortable:hover {
+  color: var(--text);
+}
+thead tr + tr th.num {
+  text-align: right;
+}
+thead tr + tr th:first-child {
+  border-left: 1px solid var(--line-soft);
+}
+td.num,
+th.num {
+  font-variant-numeric: tabular-nums;
+}
+td.left,
+th.left {
+  text-align: left;
+}
+
+/* ===== 対局カード ===== */
+.game {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.game-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--head-bg);
+}
+.game-head .date {
+  font-weight: 700;
+}
+.game-head .spacer {
+  flex: 1;
+}
+/* 対局カードの表は列幅を固定して、どのカードでも揃える */
+.game table {
+  table-layout: fixed;
+}
+.game td,
+.game th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kyotaku {
+  font-size: 13px;
+  color: #8a5a00;
+  margin-right: 4px;
+}
+
+/* ===== フォーム ===== */
+.formrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.formrow label.l {
+  width: 64px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.sumbox {
+  margin-top: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--head-bg);
+  font-size: 15px;
+}
+.sumbox.ok {
+  background: #e3f4ea;
+  color: var(--ok);
+  font-weight: 700;
+}
+.errors {
+  margin-top: 10px;
+  color: var(--danger);
+  font-size: 14px;
+}
+.errors div::before {
+  content: "・";
+}
+
+/* ===== プレイヤー詳細 ===== */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.stat {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.stat .k {
+  font-size: 12px;
+  color: var(--muted);
+}
+.stat .v {
+  font-size: 24px;
+  font-weight: 700;
+}
+.tablemates {
+  text-align: left;
+  white-space: normal;
+}
+.tablemates span {
+  display: inline-block;
+  margin-right: 14px;
+  white-space: nowrap;
+}
+
+/* ===== メッセージ ===== */
+.toast {
+  position: fixed;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ok);
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+.badge {
+  background: #fff1d6;
+  color: #8a5a00;
+  border: 1px solid var(--warn-line);
+  border-radius: 12px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+.error-box {
+  background: #fdecea;
+  color: var(--danger);
+  border: 1px solid #f1b8b2;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
