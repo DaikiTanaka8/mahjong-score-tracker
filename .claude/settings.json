@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '--- 品質チェック ---'; if [ -f frontend/package.json ]; then echo '[Frontend] ESLint...' && npm --prefix frontend run lint 2>&1 && echo '[Frontend] ESLint: OK'; else echo '[Frontend] 未作成のためスキップ'; fi; if [ -d backend/.venv ]; then echo '[Backend] Ruff...' && (cd backend && .venv/bin/ruff check . 2>&1) && echo '[Backend] Ruff: OK'; else echo '[Backend] 未作成のためスキップ'; fi",
+            "timeout": 120,
+            "statusMessage": "ESLint / Ruff チェック中..."
+          }
+        ]
+      }
+    ]
+  }
+}
