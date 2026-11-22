@@ -248,11 +248,19 @@ thead tr:first-child th {
 th.center {
   text-align: center;
 }
-th.sortable {
+/* 項目名を押して並び替える見出し(見た目は文字のまま、中身はボタン) */
+.sort-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
   cursor: pointer;
   user-select: none;
 }
-th.sortable:hover {
+.sort-button:hover {
+  background: transparent;
   color: var(--text);
 }
 thead tr + tr th.num {
