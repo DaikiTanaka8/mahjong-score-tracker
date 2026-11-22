@@ -1,0 +1,31 @@
+# 機密情報(パスワードなど)。.env.example だけをコミットする
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Node.js / Next.js
+node_modules/
+.next/
+out/
+
+# Terraform
+infra/.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+db-password.txt
+
+# Claude Code の個人設定
+.claude/settings.local.json
+
+# OS・エディタ
+.DS_Store
+.idea/
+.vscode/
