@@ -85,8 +85,10 @@ if [ ! -f /root/.my.cnf ]; then
 fi
 
 echo "== 7. アプリ用のDBとユーザーを作成 =="
+# SSM から実行すると HOME が無く、~/.my.cnf が読まれないため、ファイルを明示的に指定する
+MYSQL_ROOT=(mysql --defaults-extra-file=/root/.my.cnf)
 # パスワードは hex 文字(0-9a-f)のみの想定なので、SQL に埋め込んでも安全
-mysql <<SQL
+"${MYSQL_ROOT[@]}" <<SQL
 CREATE DATABASE IF NOT EXISTS ${DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
 ALTER USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
@@ -95,4 +97,4 @@ SQL
 
 echo "== 完了 =="
 systemctl is-active mysqld
-mysql -e "SELECT VERSION();"
+"${MYSQL_ROOT[@]}" -e "SELECT VERSION();"

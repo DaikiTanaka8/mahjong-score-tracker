@@ -26,7 +26,8 @@ aws s3 sync "${REPO_ROOT}/frontend/out/" "s3://${BUCKET}/frontend/" --delete --r
 
 echo "== EC2 に配置 =="
 ssm_run "set -euo pipefail
-aws s3 sync s3://${BUCKET}/frontend/ /usr/share/nginx/html/ --delete --region ${REGION} --only-show-errors
-chmod -R a+rX /usr/share/nginx/html
+mkdir -p /var/www/mahjong-score-tracker
+aws s3 sync s3://${BUCKET}/frontend/ /var/www/mahjong-score-tracker/ --delete --region ${REGION} --only-show-errors
+chmod -R a+rX /var/www/mahjong-score-tracker
 systemctl reload nginx
-ls /usr/share/nginx/html | head"
+ls /var/www/mahjong-score-tracker | head"
