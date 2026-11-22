@@ -13,6 +13,8 @@ RaiseTech AI エンジニアコースの最終課題として、アプリの設�
 - [プロジェクト構成](#プロジェクト構成)
 - [設計書](#設計書)
 - [ローカルでの動かし方](#ローカルでの動かし方)
+- [AWS へのデプロイ](#aws-へのデプロイ)
+- [AWS 上での動作確認](#aws-上での動作確認)
 - [テストと品質チェック](#テストと品質チェック)
 - [API の概要](#api-の概要)
 - [開発の進め方](#開発の進め方)
@@ -104,7 +106,7 @@ RaiseTech AI エンジニアコースの最終課題として、アプリの設�
 | | Uvicorn(サーバー) / Pydantic(入力の検証) | 0.54.0 / 2 |
 | データベース | MySQL | 8.0 |
 | テスト・品質 | pytest、Ruff(バックエンド)/ Vitest、Testing Library、ESLint(フロントエンド) | |
-| インフラ | AWS(EC2 1台 + Nginx、Terraform で構築) | ※デプロイ後に追記 |
+| インフラ | AWS(EC2 1台 + Nginx + MySQL)、Terraform で構築、SSM で操作 | EC2 t3.micro / Amazon Linux 2023 |
 
 ### 構成の考え方
 
@@ -133,7 +135,8 @@ mahjong-score-tracker/
 │       ├── app/              #   画面(ページ)
 │       ├── components/       #   共通の部品(対局フォーム、確認ダイアログなど)
 │       └── lib/              #   API 呼び出し、表示の整形、入力チェック、並び替え
-├── docs/                     # 設計書、画面のモック
+├── infra/                    # AWS の構築(Terraform)とデプロイスクリプト、Nginx 設定
+├── docs/                     # 設計書、画面のモック、AWS デプロイ手順書、動作確認のスクリーンショット
 ├── CLAUDE.md                 # 開発のルール(AI アシスタント向け)
 └── README.md
 ```
@@ -230,6 +233,72 @@ npm run dev
 http://localhost:3000 を開くと、アプリが使えます。最初に、「プレイヤー」の画面で4人以上を登録してから、対局を登録してください。
 
 > `.env`(パスワードを書いたファイル)は、`.gitignore` で Git の管理から外してあります。GitHub には上がりません。
+
+---
+
+## AWS へのデプロイ
+
+Terraform で AWS の環境を作り、スクリプトでアプリを配置します。**詳しい手順とトラブルシューティングは、[AWSデプロイ手順書](docs/AWSデプロイ手順書.md)** にまとめています。
+
+```
+ブラウザ ──(HTTP 80番)──> Nginx ─┬─ /     → Next.js の静的ファイル
+                                  └─ /api/ → FastAPI (127.0.0.1:8000) → MySQL 8.0 (127.0.0.1:3306)
+                           （すべて EC2 1台の中）
+```
+
+| 項目 | 内容 |
+|------|------|
+| 構成 | EC2(t3.micro / Amazon Linux 2023)1台に、Nginx・FastAPI・MySQL をまとめて置く。RDS・ALB などの常時課金のものは使わない |
+| 構築 | Terraform(EC2、セキュリティグループ、SSM 用 IAM、転送用 S3 の 10 リソース) |
+| 接続 | SSH は使わず、SSM を使う(22 番ポートは開けない) |
+| 公開範囲 | セキュリティグループで、**自分の IP からの 80 番のみ**許可 |
+| バックエンド | uv で導入した Python 3.15 + systemd。起動のたびに `alembic upgrade head` でテーブルを最新にする |
+| フロントエンド | 手元で `npm run build` し、できた `out/` を S3 経由で Nginx に配置する |
+
+```bash
+# リポジトリのルートで実行(事前準備・詳細は手順書を参照)
+cd infra && cp terraform.tfvars.example terraform.tfvars   # my_ip_cidr を自分の IP に書き換える
+terraform init && terraform apply && cd ..                  # AWS の環境を作る(課金が始まる)
+bash infra/scripts/deploy-database.sh                       # MySQL
+bash infra/scripts/deploy-backend.sh --setup                # バックエンド
+bash infra/scripts/deploy-frontend.sh --setup               # フロントエンド
+```
+
+> 公開範囲を自分の IP に限定し、認証もないため、**確認が終わったら `terraform destroy` で削除します**(手順書の「終了時」を参照)。
+
+---
+
+## AWS 上での動作確認
+
+2026-11-22 に、上の手順で AWS(東京リージョン)にデプロイして、ブラウザから動作を確認しました。アドレスバーが、AWS 上の EC2 の IP アドレス(`54.150.215.9`)になっている点に注目してください。
+
+### 成績一覧
+
+プレイヤーごとの成績です。スコアのプラスは青、マイナスは赤で表示します。
+
+![成績一覧](docs/screenshots/01-stats-list.png)
+
+### 対局の登録
+
+素点の合計と供託を足して 120,000 点になっていれば、緑の「OK」が出ます。
+
+![対局の登録(入力が正しい状態)](docs/screenshots/02-game-new-ok.png)
+
+入力が正しくないときは、直すべき点を日本語で表示して、登録ボタンを押せなくします。次の例は、プレイヤーを選んでいない 2 人目と、合計が 126,000 点になっている状態です。
+
+![対局の登録(入力にエラーがある状態)](docs/screenshots/03-game-new-error.png)
+
+### 対局一覧
+
+登録した対局が、日付の新しい順に並びます。
+
+![対局一覧](docs/screenshots/04-game-list.png)
+
+### プレイヤー詳細
+
+通算の成績と、同卓者つきの対局履歴です。2026-11-03 の行のように、同点のときは「1.5位」と表示し、ウマを分け合って計算します。
+
+![プレイヤー詳細](docs/screenshots/05-player-detail.png)
 
 ---
 

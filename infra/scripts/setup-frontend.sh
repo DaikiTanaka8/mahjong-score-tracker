@@ -18,7 +18,7 @@ echo "== 2. 設定ファイルを配置 =="
 echo "${NGINX_CONF_B64}" | base64 -d | gunzip > /etc/nginx/conf.d/mahjong-score-tracker.conf
 
 echo "== 3. 画面ファイルの置き場所 =="
-mkdir -p /usr/share/nginx/html
+mkdir -p /var/www/mahjong-score-tracker
 
 echo "== 4. 設定チェックと起動 =="
 nginx -t
