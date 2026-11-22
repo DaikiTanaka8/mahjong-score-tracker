@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>麻雀成績管理 モック</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #fff; --text: #1f2933; --muted: #6b7785; --line: #e2e6eb;
+    --primary: #1f6f5c; --primary-dark: #17564a; --danger: #c0392b; --ok: #1e8449;
+    --plus: #1e6fb8; --minus: #c0392b; --warn-bg: #fff6df; --warn-line: #f0d98a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; line-height: 1.6; }
+  .mockbar { background: var(--warn-bg); border-bottom: 1px solid var(--warn-line);
+    font-size: 13px; padding: 6px 16px; text-align: center; }
+  header.nav { background: var(--primary); color: #fff; display: flex; align-items: center;
+    gap: 8px; padding: 0 16px; height: 52px; }
+  header.nav .brand { font-weight: 700; margin-right: 16px; }
+  header.nav a { color: #d8efe8; text-decoration: none; padding: 6px 14px; border-radius: 6px; font-size: 15px; }
+  header.nav a.active { background: #fff; color: var(--primary); font-weight: 700; }
+  header.nav a:not(.active):hover { background: rgba(255,255,255,.15); }
+  main { max-width: 980px; margin: 24px auto; padding: 0 16px; }
+  h1 { font-size: 22px; margin: 0 0 16px; }
+  h2 { font-size: 17px; margin: 24px 0 8px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  table { border-collapse: collapse; width: 100%; background: var(--card); }
+  th, td { padding: 9px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { background: #eef1f4; font-size: 13px; color: var(--muted); font-weight: 600; }
+  th.sortable { cursor: pointer; user-select: none; }
+  th.sortable:hover { color: var(--text); }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+  .tablewrap table { border-radius: 10px; }
+  tr:last-child td { border-bottom: none; }
+  /* 縦線は薄く入れる */
+  th + th, td + td { border-left: 1px solid #edf0f3; }
+  thead tr:first-child th { border-bottom: 1px solid #e2e6eb; }
+  th.center { text-align: center; }
+  thead tr + tr th.num { text-align: right; }
+  thead tr + tr th:first-child { border-left: 1px solid #edf0f3; }
+  td.num, th.num { font-variant-numeric: tabular-nums; }
+  /* 対局カードの表は列幅を固定して、どのカードでも揃える */
+  .game table { table-layout: fixed; }
+  .game td, .game th { overflow: hidden; text-overflow: ellipsis; }
+  /* 一番よく使う「対局を登録する」ボタン */
+  .btn-cta { display: inline-block; background: #e8590c; border: 1px solid #e8590c; color: #fff; text-decoration: none;
+    font-weight: 700; font-size: 16px; padding: 10px 24px; border-radius: 8px; box-shadow: 0 2px 6px rgba(232,89,12,.35); }
+  .btn-cta:hover { background: #cf4f0a; }
+  .kyotaku { font-size: 13px; color: #8a5a00; margin-right: 4px; }
+  .tablemates { text-align: left; white-space: normal; }
+  .tablemates span { display: inline-block; margin-right: 14px; white-space: nowrap; }
+  .plus { color: var(--plus); } .minus { color: var(--minus); }
+  .muted { color: var(--muted); }
+  a.link { color: var(--primary); text-decoration: none; cursor: pointer; } a.link:hover { text-decoration: underline; }
+  button, .btn { font: inherit; border: 1px solid var(--line); background: #fff; color: var(--text);
+    padding: 6px 14px; border-radius: 6px; cursor: pointer; }
+  button:hover { background: #f0f3f6; }
+  button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  button.primary:hover { background: var(--primary-dark); }
+  button.danger { color: var(--danger); border-color: #e6b8b2; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  input, select { font: inherit; padding: 6px 10px; border: 1px solid #c8d0d8; border-radius: 6px; background: #fff; }
+  input[type=number] { width: 130px; text-align: right; }
+  .game { background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 14px; overflow: hidden; }
+  .game-head { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #eef1f4; }
+  .game-head .date { font-weight: 700; }
+  .badge { background: #fff1d6; color: #8a5a00; border: 1px solid var(--warn-line); border-radius: 12px; padding: 0 10px; font-size: 12px; }
+  .game-head .spacer { flex: 1; }
+  .formrow { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .formrow label.l { width: 64px; color: var(--muted); font-size: 14px; }
+  .sumbox { margin-top: 8px; padding: 10px 14px; border-radius: 8px; background: #eef1f4; font-size: 15px; }
+  .sumbox.ok { background: #e3f4ea; color: var(--ok); font-weight: 700; }
+  .errors { margin-top: 10px; color: var(--danger); font-size: 14px; }
+  .errors div::before { content: "・"; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .stat .k { font-size: 12px; color: var(--muted); } .stat .v { font-size: 24px; font-weight: 700; }
+  .toast { position: fixed; top: 64px; left: 50%; transform: translateX(-50%); background: var(--ok); color: #fff;
+    padding: 10px 22px; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.2); z-index: 10; }
+  .empty { padding: 28px; text-align: center; color: var(--muted); }
+  .actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .note { font-size: 13px; color: var(--muted); margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="mockbar">これは画面設計のモックです。データはこのブラウザ上だけにあり、保存されません(リロードで元に戻ります)。</div>
+<header class="nav">
+  <span class="brand">麻雀成績管理</span>
+  <a href="#/" data-nav="stats">成績</a>
+  <a href="#/games" data-nav="games">対局</a>
+  <a href="#/players" data-nav="players">プレイヤー</a>
+</header>
+<main id="app"></main>
+<div id="toast-area"></div>
+
+<script>
+// ===== データ(サンプル) =====
+const UMA = [30, 10, -10, -30];   // 1位〜4位のウマ
+const players = [
+  { id: 1, name: '田中', deleted: false },
+  { id: 2, name: '佐藤', deleted: false },
+  { id: 3, name: '鈴木', deleted: false },
+  { id: 4, name: '高橋', deleted: false },
+  { id: 5, name: '山田', deleted: true },
+];
+const games = [
+  { id: 1, date: '2026-11-10', kyotaku: 0,    rows: [[4,33000],[2,31000],[1,30000],[3,26000]] },
+  { id: 2, date: '2026-11-15', kyotaku: 0,    rows: [[3,45000],[1,25000],[2,25000],[4,25000]] },
+  { id: 3, date: '2026-11-20', kyotaku: 0,    rows: [[1,36000],[5,36000],[3,28000],[4,20000]] },
+  { id: 4, date: '2026-11-22', kyotaku: 0,    rows: [[1,42500],[2,31000],[3,28000],[4,18500]] },
+  { id: 5, date: '2026-11-22', kyotaku: 1000, rows: [[2,38000],[1,29000],[4,27000],[3,25000]] },
+];
+let nextGameId = 6, nextPlayerId = 6;
+
+// ===== スコア計算(要件定義書 2.2 / 2.3 のとおり) =====
+function calcResults(rows) {            // rows: [[playerId, points], ...](4人分)
+  const sorted = rows.map(([pid, pts]) => ({ pid, pts })).sort((a, b) => b.pts - a.pts);
+  const out = [];
+  let i = 0;
+  while (i < sorted.length) {
+    let j = i;
+    while (j + 1 < sorted.length && sorted[j + 1].pts === sorted[i].pts) j++;
+    const from = i + 1, to = j + 1, n = to - from + 1;
+    const uma = UMA.slice(from - 1, to).reduce((a, b) => a + b, 0) / n;
+    for (let k = i; k <= j; k++) {
+      out.push({ pid: sorted[k].pid, points: sorted[k].pts, from, to,
+        score: Math.round(((sorted[k].pts - 30000) / 1000 + uma) * 10) / 10 });
+    }
+    i = j + 1;
+  }
+  return out;
+}
+const resultsOf = g => calcResults(g.rows);
+
+// ===== 表示用の整形 =====
+const comma = n => n.toLocaleString('ja-JP');
+const fmtScore = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toFixed(1);
+const scoreHtml = n => `<span class="${n > 0 ? 'plus' : n < 0 ? 'minus' : ''}">${fmtScore(n)}</span>`;
+const trim2 = n => String(parseFloat(n.toFixed(2)));
+const rankOf = r => (r.from + r.to) / 2;
+const pct = n => (n * 100).toFixed(1) + '%';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const pById = id => players.find(p => p.id === id);
+const nameHtml = id => {
+  const p = pById(id);
+  return p.deleted ? '<span class="muted">削除されたプレイヤー</span>'
+    : `<a class="link" href="#/players/detail?id=${p.id}">${esc(p.name)}</a>`;
+};
+
+// ===== 集計(DB設計書 6章の SQL と同じ考え方) =====
+function statsOf(pid) {
+  const rs = [];
+  games.forEach(g => resultsOf(g).forEach(r => { if (r.pid === pid) rs.push({ ...r, game: g }); }));
+  const count = rs.length;
+  const s = { count, total: 0, maxPts: null, avg: null, ranks: [0, 0, 0, 0], top: null, last: null, rs };
+  if (!count) return s;
+  rs.forEach(r => {
+    s.total += r.score;
+    s.maxPts = s.maxPts === null ? r.points : Math.max(s.maxPts, r.points);
+    const n = r.to - r.from + 1;
+    for (let k = r.from; k <= r.to; k++) s.ranks[k - 1] += 1 / n;
+  });
+  s.total = Math.round(s.total * 10) / 10;
+  s.avg = rs.reduce((a, r) => a + rankOf(r), 0) / count;
+  s.top = s.ranks[0] / count;
+  s.last = s.ranks[3] / count;
+  return s;
+}
+
+// ===== 画面の状態 =====
+let sort = { key: 'total', dir: -1 };
+let editingPlayerId = null;
+let form = null;      // 対局フォームの状態
+let touched = false;
+
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  document.getElementById('toast-area').appendChild(el);
+  setTimeout(() => el.remove(), 2200);
+}
+
+// ===== S01 成績一覧 =====
+function viewStats() {
+  const rows = players.filter(p => !p.deleted).map(p => ({ p, s: statsOf(p.id) }));
+  const val = (r, k) => {
+    const s = r.s;
+    if (k === 'name') return r.p.name;
+    if (k === 'count') return s.count;
+    if (!s.count) return null;
+    return { total: s.total, avg: s.avg, top: s.top, last: s.last, max: s.maxPts }[k];
+  };
+  rows.sort((a, b) => {
+    const x = val(a, sort.key), y = val(b, sort.key);
+    if (x === null && y === null) return 0;
+    if (x === null) return 1; if (y === null) return -1;     // 対局0件は最後
+    if (typeof x === 'string') return x.localeCompare(y, 'ja') * sort.dir;
+    return (x - y) * sort.dir;
+  });
+  const th = (k, label) => `<th class="sortable num" rowspan="2" data-sort="${k}">${label}${sort.key === k ? (sort.dir < 0 ? ' ▼' : ' ▲') : ''}</th>`;
+  const body = rows.map(({ p, s }) => `<tr>
+      <td><a class="link" href="#/players/detail?id=${p.id}">${esc(p.name)}</a></td>
+      <td class="num">${s.count}</td>
+      <td class="num">${s.count ? scoreHtml(s.total) : '-'}</td>
+      <td class="num">${s.count ? s.avg.toFixed(2) : '-'}</td>
+      ${s.ranks.map(n => `<td class="num">${s.count ? n.toFixed(2) : '-'}</td>`).join('')}
+      <td class="num">${s.count ? pct(s.top) : '-'}</td>
+      <td class="num">${s.count ? pct(s.last) : '-'}</td>
+      <td class="num">${s.count ? comma(s.maxPts) : '-'}</td></tr>`).join('');
+  return `<div class="toolbar"><h1 style="margin:0">成績一覧</h1>
+      <a class="btn-cta" href="#/games/new">＋ 対局を登録する</a></div>
+    ${rows.length ? `<div class="tablewrap"><table><thead><tr>
+      ${th('name', '名前')}${th('count', '対局数')}${th('total', '通算スコア')}${th('avg', '平均順位')}
+      <th class="center" colspan="4">順位の回数</th>${th('top', 'トップ率')}${th('last', 'ラス率')}${th('max', '最高素点')}
+      </tr><tr><th class="num">1位</th><th class="num">2位</th><th class="num">3位</th><th class="num">4位</th></tr>
+      </thead><tbody>${body}</tbody></table></div>
+      <p class="note">項目名を押すと並び替えできます。削除済みのプレイヤーは表示されません。</p>`
+      : '<div class="card empty">プレイヤーが登録されていません。<a class="link" href="#/players">プレイヤー管理</a>から登録してください。</div>'}`;
+}
+
+// ===== S02 対局一覧 =====
+function viewGames() {
+  const list = [...games].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+  const cards = list.map(g => {
+    const rs = resultsOf(g);
+    return `<div class="game">
+      <div class="game-head">
+        <span class="date">${g.date}</span>
+        <span class="spacer"></span>
+        ${g.kyotaku ? `<span class="kyotaku">※供託 ${comma(g.kyotaku)}点</span>` : ''}
+        <button data-edit-game="${g.id}">編集</button>
+        <button class="danger" data-del-game="${g.id}">削除</button>
+      </div>
+      <table><colgroup><col style="width:34%"><col style="width:16%"><col style="width:25%"><col style="width:25%"></colgroup>
+      <thead><tr><th>名前</th><th>順位</th><th>素点</th><th>スコア</th></tr></thead><tbody>
+      ${rs.map(r => `<tr><td>${nameHtml(r.pid)}</td><td>${trim2(rankOf(r))}</td>
+        <td>${comma(r.points)}</td><td>${scoreHtml(r.score)}</td></tr>`).join('')}
+      </tbody></table></div>`;
+  }).join('');
+  return `<div class="toolbar"><h1 style="margin:0">対局一覧</h1>
+      <a class="btn-cta" href="#/games/new">＋ 対局を登録する</a></div>
+    ${list.length ? cards : '<div class="card empty">対局が登録されていません。</div>'}`;
+}
+
+// ===== S03 対局登録・編集 =====
+function initForm(id) {
+  touched = false;
+  if (id) {
+    const g = games.find(x => x.id === id);
+    form = { id, date: g.date, kyotaku: String(g.kyotaku),
+      pids: g.rows.map(r => String(r[0])), pts: g.rows.map(r => String(r[1])) };
+  } else {
+    form = { id: null, date: new Date().toISOString().slice(0, 10), kyotaku: '0',
+      pids: ['', '', '', ''], pts: ['', '', '', ''] };
+  }
+}
+function validate() {
+  const e = [];
+  if (!form.date) e.push('対局日を入力してください');
+  const picked = form.pids.filter(Boolean);
+  if (picked.length < 4) e.push('4人のプレイヤーを選択してください');
+  else if (new Set(picked).size < 4) e.push('同じプレイヤーを重複して選べません');
+  const ptsFilled = form.pts.every(v => v !== '' && !isNaN(Number(v)));
+  if (!ptsFilled) e.push('4人分の素点を入力してください');
+  else if (form.pts.some(v => Number(v) % 100 !== 0)) e.push('素点は100点単位で入力してください');
+  const k = Number(form.kyotaku);
+  if (form.kyotaku === '' || isNaN(k) || k < 0 || k % 100 !== 0) e.push('供託は0以上の100点単位で入力してください');
+  else if (ptsFilled) {
+    const sum = form.pts.reduce((a, v) => a + Number(v), 0) + k;
+    if (sum !== 120000) e.push(`素点の合計と供託の合計が 120,000点になっていません(現在: ${comma(sum)}点)`);
+  }
+  return e;
+}
+function sumHtml() {
+  const sum = form.pts.reduce((a, v) => a + (Number(v) || 0), 0), k = Number(form.kyotaku) || 0;
+  const total = sum + k, diff = 120000 - total;
+  return `<div class="sumbox ${diff === 0 ? 'ok' : ''}">合計: 素点 ${comma(sum)} + 供託 ${comma(k)} = ${comma(total)} 点
+    ${diff === 0 ? '(OK)' : `(あと ${comma(diff)} 点)`}</div>`;
+}
+function optionsFor(i) {
+  const chosenElsewhere = form.pids.filter((v, j) => j !== i && v);
+  const usable = players.filter(p => !p.deleted || form.pids[i] === String(p.id));
+  return `<option value="">プレイヤーを選択</option>` + usable.map(p =>
+    `<option value="${p.id}" ${form.pids[i] === String(p.id) ? 'selected' : ''}
+      ${chosenElsewhere.includes(String(p.id)) ? 'disabled' : ''}>${esc(p.name)}${p.deleted ? '(削除済み)' : ''}</option>`).join('');
+}
+function viewGameForm() {
+  const errs = validate();
+  return `<h1>${form.id ? '対局を編集する' : '対局を登録する'}</h1>
+    <div class="card">
+      <div class="formrow"><label class="l">対局日</label><input type="date" id="f-date" value="${form.date}"></div>
+      <div class="formrow"><label class="l">供託</label><input type="number" id="f-kyotaku" step="100" value="${form.kyotaku}"> 点</div>
+      <hr style="border:none;border-top:1px solid var(--line);margin:16px 0">
+      ${[0, 1, 2, 3].map(i => `<div class="formrow"><label class="l">${i + 1}人目</label>
+        <select data-pid="${i}">${optionsFor(i)}</select>
+        <span class="muted">素点</span><input type="number" data-pts="${i}" step="100" value="${form.pts[i]}" placeholder="例: 32500"> 点</div>`).join('')}
+      <div id="sum">${sumHtml()}</div>
+      <div class="errors" id="errs">${touched ? errs.map(m => `<div>${esc(m)}</div>`).join('') : ''}</div>
+      <div class="actions" style="margin-top:16px">
+        <button id="f-cancel">キャンセル</button>
+        <button class="primary" id="f-submit" ${errs.length ? 'disabled' : ''}>${form.id ? '更新する' : '登録する'}</button>
+      </div>
+    </div>
+    <p class="note">順位とスコアは入力せず、登録後に素点から自動で計算されます(対局一覧で確認できます)。</p>`;
+}
+function refreshFormParts() {      // 入力中はフォーム全体を作り直さず、必要な部分だけ更新する
+  document.getElementById('sum').innerHTML = sumHtml();
+  const errs = validate();
+  document.getElementById('errs').innerHTML = touched ? errs.map(m => `<div>${esc(m)}</div>`).join('') : '';
+  document.getElementById('f-submit').disabled = errs.length > 0;
+  document.querySelectorAll('select[data-pid]').forEach(sel => { sel.innerHTML = optionsFor(Number(sel.dataset.pid)); });
+}
+function submitGame() {
+  if (validate().length) return;
+  const rows = form.pids.map((p, i) => [Number(p), Number(form.pts[i])]);
+  if (form.id) {
+    Object.assign(games.find(g => g.id === form.id), { date: form.date, kyotaku: Number(form.kyotaku), rows });
+    toast('対局を更新しました');
+  } else {
+    games.push({ id: nextGameId++, date: form.date, kyotaku: Number(form.kyotaku), rows });
+    toast('対局を登録しました');
+  }
+  location.hash = '#/games';
+}
+
+// ===== S04 プレイヤー管理 =====
+function viewPlayers() {
+  const active = players.filter(p => !p.deleted);
+  const rows = active.map(p => editingPlayerId === p.id
+    ? `<tr><td><input id="rename-input" value="${esc(p.name)}" maxlength="30"></td>
+         <td><div class="actions"><button class="primary" data-save-player="${p.id}">保存</button>
+         <button data-cancel-rename>キャンセル</button></div></td></tr>`
+    : `<tr><td><a class="link" href="#/players/detail?id=${p.id}">${esc(p.name)}</a></td>
+         <td><div class="actions"><button data-rename="${p.id}">編集</button>
+         <button class="danger" data-del-player="${p.id}">削除</button></div></td></tr>`).join('');
+  return `<h1>プレイヤー管理</h1>
+    <div class="card"><div class="formrow" style="margin:0">
+      <label class="l" style="width:auto">新規登録</label>
+      <input id="new-name" placeholder="名前を入力" maxlength="30">
+      <button class="primary" id="add-player">登録する</button></div>
+      <div class="errors" id="player-err"></div></div>
+    ${active.length ? `<div class="tablewrap"><table><thead><tr><th>名前</th><th style="text-align:right">操作</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>` : '<div class="card empty">プレイヤーが登録されていません。</div>'}`;
+}
+function checkName(name, selfId) {
+  const n = name.trim();
+  if (!n) return '名前を入力してください';
+  if ([...n].length > 20) return '名前は20文字以内で入力してください';
+  if (players.some(p => !p.deleted && p.id !== selfId && p.name === n)) return 'その名前はすでに登録されています';
+  return '';
+}
+
+// ===== S05 プレイヤー詳細 =====
+function viewPlayerDetail(id) {
+  const p = pById(id);
+  if (!p) return `<h1>プレイヤーが見つかりません</h1><a class="link" href="#/">成績一覧へ戻る</a>`;
+  const s = statsOf(p.id);
+  const hist = [...s.rs].sort((a, b) => b.game.date.localeCompare(a.game.date) || b.game.id - a.game.id);
+  const stat = (k, v) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  return `<h1>${esc(p.name)}さんの成績${p.deleted ? ' <span class="badge">削除済み</span>' : ''}</h1>
+    <div class="stats">
+      ${stat('対局数', s.count)}
+      ${stat('通算スコア', s.count ? scoreHtml(s.total) : '-')}
+      ${stat('最高素点', s.count ? comma(s.maxPts) : '-')}
+      ${stat('平均順位', s.count ? s.avg.toFixed(2) : '-')}
+      ${stat('トップ率', s.count ? pct(s.top) : '-')}
+      ${stat('ラス率', s.count ? pct(s.last) : '-')}
+    </div>
+    <div class="card">順位の回数: ${s.count ? s.ranks.map((n, i) => `<b>${i + 1}位</b> ${trim2(n)}回`).join('　') : '-'}</div>
+    <h2>対局履歴</h2>
+    ${hist.length ? `<div class="tablewrap"><table><thead><tr><th>対局日</th><th>順位</th><th>素点</th><th>スコア</th>
+      <th style="text-align:left">同卓者(順位・点数)</th></tr></thead><tbody>
+      ${hist.map(r => {
+        const mates = resultsOf(r.game).filter(m => m.pid !== p.id)
+          .map(m => `<span>${nameHtml(m.pid)} ${trim2(rankOf(m))}位 ${comma(m.points)}点</span>`).join('');
+        return `<tr><td>${r.game.date}</td><td class="num">${trim2(rankOf(r))}</td><td class="num">${comma(r.points)}</td>
+          <td class="num">${scoreHtml(r.score)}</td><td class="tablemates">${mates}</td></tr>`;
+      }).join('')}
+      </tbody></table></div>` : '<div class="card empty">対局がありません。</div>'}`;
+}
+
+// ===== ルーティング =====
+function render() {
+  const [path, query] = location.hash.replace(/^#/, '').split('?');
+  const q = new URLSearchParams(query || '');
+  const app = document.getElementById('app');
+  let nav = 'stats', html;
+  if (path === '/games') { nav = 'games'; html = viewGames(); }
+  else if (path === '/games/new') { nav = 'games'; initForm(null); html = viewGameForm(); }
+  else if (path === '/games/edit') { nav = 'games'; initForm(Number(q.get('id'))); html = viewGameForm(); }
+  else if (path === '/players') { nav = 'players'; html = viewPlayers(); }
+  else if (path === '/players/detail') { nav = 'players'; html = viewPlayerDetail(Number(q.get('id'))); }
+  else html = viewStats();
+  app.innerHTML = html;
+  document.querySelectorAll('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === nav));
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', () => { editingPlayerId = null; render(); });
+
+// ===== イベント =====
+document.addEventListener('click', e => {
+  const t = e.target;
+  if (t.dataset.sort) {
+    sort = { key: t.dataset.sort, dir: sort.key === t.dataset.sort ? -sort.dir : (t.dataset.sort === 'name' ? 1 : -1) };
+    return render();
+  }
+  if (t.dataset.editGame) location.hash = '#/games/edit?id=' + t.dataset.editGame;
+  if (t.dataset.delGame && confirm('この対局を削除しますか?元に戻せません')) {
+    games.splice(games.findIndex(g => g.id === Number(t.dataset.delGame)), 1);
+    toast('対局を削除しました'); render();
+  }
+  if (t.id === 'f-cancel') location.hash = '#/games';
+  if (t.id === 'f-submit') submitGame();
+  if (t.id === 'add-player') {
+    const input = document.getElementById('new-name'), err = checkName(input.value, null);
+    if (err) return (document.getElementById('player-err').innerHTML = `<div>${esc(err)}</div>`);
+    players.push({ id: nextPlayerId++, name: input.value.trim(), deleted: false });
+    toast('プレイヤーを登録しました'); render();
+  }
+  if (t.dataset.rename) { editingPlayerId = Number(t.dataset.rename); render(); }
+  if (t.dataset.cancelRename !== undefined) { editingPlayerId = null; render(); }
+  if (t.dataset.savePlayer) {
+    const id = Number(t.dataset.savePlayer), input = document.getElementById('rename-input'), err = checkName(input.value, id);
+    if (err) return alert(err);
+    pById(id).name = input.value.trim(); editingPlayerId = null; toast('名前を変更しました'); render();
+  }
+  if (t.dataset.delPlayer) {
+    const p = pById(Number(t.dataset.delPlayer));
+    if (confirm(`${p.name}さんを削除しますか?\n過去の対局は残り、「削除されたプレイヤー」と表示されます`)) {
+      p.deleted = true; toast('プレイヤーを削除しました'); render();
+    }
+  }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (!form || !document.getElementById('f-submit')) return;
+  if (t.id === 'f-date') form.date = t.value;
+  else if (t.id === 'f-kyotaku') form.kyotaku = t.value;
+  else if (t.dataset.pts !== undefined) form.pts[Number(t.dataset.pts)] = t.value;
+  else if (t.dataset.pid !== undefined) form.pids[Number(t.dataset.pid)] = t.value;
+  else return;
+  touched = true; refreshFormParts();
+});
+render();
+</script>
+</body>
+</html>

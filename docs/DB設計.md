@@ -111,7 +111,7 @@ erDiagram
 | 値 | 扱い | 理由 |
 |----|------|------|
 | rank_from / rank_to | 保存 | 素点から自動で求める。画面では入力しない |
-| final_score | 保存 | 通算スコア・最高スコアの集計のたびに計算し直さなくてよくするため |
+| final_score | 保存 | 通算スコアの集計のたびに計算し直さなくてよくするため |
 | 表示順位・平均順位・順位回数・各率 | 計算 | 保存した値から求められるため |
 
 素点を編集したときは、順位の範囲と最終スコアを同時に更新する。
@@ -138,7 +138,7 @@ DB の制約では表現しにくいルールは、アプリ(バックエンド)
 SELECT
     COUNT(*)                                           AS games_count,   -- 対局数
     SUM(final_score)                                   AS total_score,   -- 通算スコア
-    MAX(final_score)                                   AS max_score,     -- 最高スコア
+    MAX(points)                                        AS max_points,    -- 最高素点
     AVG((rank_from + rank_to) / 2)                     AS avg_rank,      -- 平均順位
     -- 1位の回数(同点は 1 ÷ 人数 ずつ按分)
     SUM(CASE WHEN rank_from <= 1 AND 1 <= rank_to
