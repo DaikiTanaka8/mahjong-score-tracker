@@ -33,6 +33,11 @@ export class ApiError extends Error {
   }
 }
 
+/** どんな例外でも、画面に出すメッセージの一覧にする(ApiError 以外は通信失敗として扱う) */
+export function errorMessages(error: unknown): string[] {
+  return error instanceof ApiError ? error.messages : [NETWORK_ERROR_MESSAGE];
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   let response: Response;
   try {
