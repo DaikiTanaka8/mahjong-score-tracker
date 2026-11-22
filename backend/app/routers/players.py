@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.player import PlayerIn, PlayerOut
+from app.schemas.stats import PlayerDetailOut
 from app.services import players as player_service
+from app.services import stats as stats_service
 
 router = APIRouter(prefix="/players", tags=["players"])
 
@@ -16,6 +18,12 @@ DbSession = Annotated[Session, Depends(get_db)]
 def list_players(db: DbSession):
     """A01 プレイヤー一覧(削除済みを除く)。"""
     return player_service.list_active_players(db)
+
+
+@router.get("/{player_id}", response_model=PlayerDetailOut)
+def get_player_detail(player_id: int, db: DbSession):
+    """A05 プレイヤー詳細(成績と、同卓者つきの対局履歴)。削除済みのプレイヤーも取得できる。"""
+    return PlayerDetailOut.from_detail(stats_service.get_player_detail(db, player_id))
 
 
 @router.post("", response_model=PlayerOut, status_code=status.HTTP_201_CREATED)

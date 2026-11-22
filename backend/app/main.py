@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.errors import register_error_handlers
-from app.routers import games, health, players
+from app.routers import games, health, players, stats
 
 # /api 配下に全てのAPIを置く(本番ではNginxが /api/ をこのアプリに転送する)
 app = FastAPI(
@@ -25,3 +25,4 @@ register_error_handlers(app)
 app.include_router(health.router, prefix="/api")
 app.include_router(players.router, prefix="/api")
 app.include_router(games.router, prefix="/api")
+app.include_router(stats.router, prefix="/api")
